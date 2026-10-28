@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiUrl } from '../config/api'
 
 export default function AuditTable({
   records = [],
@@ -28,7 +29,7 @@ export default function AuditTable({
     setClearSuccess(null)
 
     try {
-      const response = await fetch('/audit', {
+      const response = await fetch(apiUrl('/audit'), {
         method: 'DELETE',
         headers: {
           'Cache-Control': 'no-cache',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiUrl } from '../config/api'
 
 export default function HumanApproval({
   requests = [],
@@ -77,8 +78,8 @@ export default function HumanApproval({
 
     const endpoint =
       type === 'APPROVE'
-        ? `/approvals/${requestId}/approve`
-        : `/approvals/${requestId}/reject`
+        ? apiUrl(`/approvals/${requestId}/approve`)
+        : apiUrl(`/approvals/${requestId}/reject`)
 
     try {
       const response = await fetch(endpoint, {

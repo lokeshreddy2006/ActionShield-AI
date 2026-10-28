@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { apiUrl } from '../config/api'
 
 export default function WorkflowCrashTestLab() {
   const [scenarios, setScenarios] = useState([])
@@ -19,7 +20,7 @@ export default function WorkflowCrashTestLab() {
     setLoadingScenarios(true)
     setScenariosError(null)
     try {
-      const response = await fetch(`/crash-tests/scenarios?_t=${Date.now()}`, {
+      const response = await fetch(apiUrl(`/crash-tests/scenarios?_t=${Date.now()}`), {
         method: 'GET',
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
@@ -62,7 +63,7 @@ export default function WorkflowCrashTestLab() {
     setRunError(null)
 
     try {
-      const response = await fetch(`/crash-tests/run/${scenarioId}`, {
+      const response = await fetch(apiUrl(`/crash-tests/run/${scenarioId}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -102,7 +103,7 @@ export default function WorkflowCrashTestLab() {
     setRunError(null)
 
     try {
-      const response = await fetch('/crash-tests/run-all', {
+      const response = await fetch(apiUrl('/crash-tests/run-all'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })

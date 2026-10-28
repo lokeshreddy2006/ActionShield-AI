@@ -1,4 +1,5 @@
 import React from 'react'
+import { API_BASE_URL } from '../config/api'
 
 export default function Header({ backendStatus, checkingHealth, onCheckHealth }) {
   const isConnected = backendStatus === 'connected'
@@ -23,7 +24,7 @@ export default function Header({ backendStatus, checkingHealth, onCheckHealth })
       <div className="navbar-actions">
         <div
           className={`status-indicator ${isConnected ? 'status-connected' : 'status-disconnected'}`}
-          title={isConnected ? 'Backend connected on http://127.0.0.1:8000' : 'Backend connection unavailable'}
+          title={isConnected ? `Backend connected on ${API_BASE_URL || 'http://127.0.0.1:8000'}` : 'Backend connection unavailable'}
         >
           <span className="status-dot" aria-hidden="true" />
           <span className="status-text">

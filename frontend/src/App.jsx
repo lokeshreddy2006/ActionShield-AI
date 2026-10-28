@@ -6,6 +6,7 @@ import ActionLab from './components/ActionLab'
 import IntentAnalysis from './components/IntentAnalysis'
 import WorkflowCrashTestLab from './components/WorkflowCrashTestLab'
 import AuditTable from './components/AuditTable'
+import { apiUrl } from './config/api'
 import './App.css'
 
 
@@ -34,7 +35,7 @@ export default function App() {
   const checkHealth = useCallback(async () => {
     setCheckingHealth(true)
     try {
-      const response = await fetch(`/health?_t=${Date.now()}`, {
+      const response = await fetch(apiUrl(`/health?_t=${Date.now()}`), {
         method: 'GET',
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
@@ -66,7 +67,7 @@ export default function App() {
     const startTime = Date.now()
 
     try {
-      const response = await fetch(`/audit?limit=${limit}&_t=${Date.now()}`, {
+      const response = await fetch(apiUrl(`/audit?limit=${limit}&_t=${Date.now()}`), {
         method: 'GET',
         cache: 'no-store',
         headers: {
@@ -116,7 +117,7 @@ export default function App() {
     setApprovalError(null)
 
     try {
-      const response = await fetch(`/approvals?_t=${Date.now()}`, {
+      const response = await fetch(apiUrl(`/approvals?_t=${Date.now()}`), {
         method: 'GET',
         cache: 'no-store',
         headers: {

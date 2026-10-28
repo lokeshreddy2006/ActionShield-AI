@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiUrl } from '../config/api'
 
 const ACTION_TYPES = [
   { id: 'READ_FILE', label: 'Read File', desc: 'Read a file from workspace' },
@@ -234,7 +235,7 @@ export default function ActionLab({ onActionEvaluated, onActionExecuted }) {
     const payload = buildPayload()
 
     try {
-      const response = await fetch('/evaluate', {
+      const response = await fetch(apiUrl('/evaluate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -266,7 +267,7 @@ export default function ActionLab({ onActionEvaluated, onActionExecuted }) {
     setExecResult(null)
 
     try {
-      const response = await fetch('/execute', {
+      const response = await fetch(apiUrl('/execute'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lastEvaluatedPayload),

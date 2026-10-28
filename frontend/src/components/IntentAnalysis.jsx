@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiUrl } from '../config/api'
 
 const EXAMPLE_PROMPTS = [
   {
@@ -56,7 +57,7 @@ export default function IntentAnalysis() {
     setError(null)
 
     try {
-      const response = await fetch('/intent/analyze', {
+      const response = await fetch(apiUrl('/intent/analyze'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

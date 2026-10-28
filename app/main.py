@@ -10,6 +10,7 @@ Provides endpoints for:
 
 from typing import Any, Dict, List, Optional
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.database.manager import DatabaseManager
@@ -23,6 +24,15 @@ from app.services.intent_analyzer import IntentAnalyzerService
 app = FastAPI(
     title="ActionShield AI",
     description="Safety layer for AI agent action evaluation, human approval workflow, crash-testing, and intent analysis.",
+)
+
+# Enable CORS for cross-origin frontend communication in production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Lazy singletons for production runtime
