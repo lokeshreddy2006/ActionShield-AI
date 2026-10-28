@@ -163,6 +163,13 @@ class AuditLogsResponse(BaseModel):
     limit: int
 
 
+class ClearAuditResponse(BaseModel):
+    status: str
+    deleted_count: int
+    message: str
+
+
+
 class ApprovalResolutionRequest(BaseModel):
     comment: Optional[str] = None
 
@@ -399,6 +406,26 @@ def get_audit_logs(
         }
     except Exception:
         raise HTTPException(status_code=500, detail="Unable to retrieve audit logs.")
+
+
+@app.delete("/audit", response_model=ClearAuditResponse)
+def clear_audit_logs(
+    audit_service: AuditService = Depends(get_audit_service),
+) -> Dict[str, Any]:
+    """Permanently delete all audit log records from SQLite.
+
+    Returns the number of deleted records (0 if table was already empty).
+    Does not affect approval requests or crash test runs.
+    """
+    try:
+        count = audit_service.clear_logs()
+        return {
+            "status": "ok",
+            "deleted_count": count,
+            "message": f"Successfully cleared {count} audit record{'s' if count != 1 else ''}.",
+        }
+    except Exception:
+        raise HTTPException(status_code=500, detail="Unable to clear audit logs.")
 
 
 # -------------------------------------------------------------

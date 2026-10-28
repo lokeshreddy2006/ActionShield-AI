@@ -237,7 +237,7 @@ export default function App() {
 
       <footer className="footer">
         <div>
-          ActionShield AI &bull; YUKTHI Hackathon 2026 &bull; AI-Agent Safety &amp; Audit Layer
+          ActionShield AI &bull; AI-Agent Safety &amp; Audit Layer
         </div>
         <div className="footer-sub">
           FastAPI &bull; React + Vite &bull; SQLite &bull; Policy Rules &bull; Human Approvals &bull; Crash-Test Lab &bull; Intent Analysis

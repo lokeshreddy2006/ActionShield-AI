@@ -62,18 +62,6 @@
   letter-spacing: -0.02em;
 }
 
-.hackathon-tag {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid var(--border-accent);
-  color: var(--accent-cyan);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .brand-subtitle {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -150,6 +138,7 @@
   letter-spacing: -0.025em;
   background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.4rem;
 }
@@ -592,6 +581,19 @@
   padding: 0.4rem 0.75rem;
   font-size: 0.8rem;
 }
+
+.btn-clear-audit {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.btn-clear-audit:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fff;
+}
+
 
 .btn-execute {
   background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);

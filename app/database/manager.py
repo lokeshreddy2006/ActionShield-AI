@@ -196,6 +196,18 @@ class DatabaseManager:
 
         return records
 
+    def clear_audit_records(self) -> int:
+        """Permanently delete all records exclusively from the audit_logs table.
+
+        Returns:
+            The number of records deleted (0 if table was already empty).
+        """
+        query = "DELETE FROM audit_logs;"
+        with self.transaction() as conn:
+            cursor = conn.execute(query)
+            count = cursor.rowcount
+        return count if count >= 0 else 0
+
     def insert_approval_request(
         self,
         action_type: str,

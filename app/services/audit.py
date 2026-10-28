@@ -118,3 +118,8 @@ class AuditService:
     def get_recent_logs(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Retrieve recent audit logs in newest-first order."""
         return self.db.get_recent_audit_records(limit=limit)
+
+    def clear_logs(self) -> int:
+        """Permanently clear all audit logs and return the count of deleted records."""
+        return self.db.clear_audit_records()
+

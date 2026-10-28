@@ -246,6 +246,82 @@ class TestAuditLogging(unittest.TestCase):
         self.assertEqual(logs[1]["id"], eval_id)
         self.assertIsNone(logs[1]["execution_status"])
 
+    # ---------------------------------------------------------
+    # 7. Clearing Audit Logs
+    # ---------------------------------------------------------
+
+    def test_clear_audit_records_populated(self):
+        """Clearing populated audit records deletes all entries and returns deleted_count."""
+        for i in range(3):
+            self.audit_service.record_evaluation(
+                PolicyResult(decision="ALLOW", reason=f"Allowed {i}", action_type="READ_FILE")
+            )
+
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 3)
+
+        deleted = self.audit_service.clear_logs()
+        self.assertEqual(deleted, 3)
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 0)
+
+    def test_clear_audit_records_empty_returns_zero(self):
+        """Clearing an already-empty audit table succeeds and returns 0."""
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 0)
+        deleted = self.audit_service.clear_logs()
+        self.assertEqual(deleted, 0)
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 0)
+
+    def test_clear_audit_records_preserves_other_tables(self):
+        """Clearing audit records does NOT affect approval_requests or crash_test_runs."""
+        # 1. Add audit record
+        self.audit_service.record_evaluation(
+            PolicyResult(decision="ALLOW", reason="Safe read", action_type="READ_FILE")
+        )
+
+        # 2. Add an approval request
+        appr_id = self.db_manager.insert_approval_request(
+            action_type="DELETE_FILE",
+            action_payload={"path": "sensitive.txt"},
+            policy_decision="REVIEW",
+            review_reason="Requires human approval",
+        )
+
+        # 3. Add a crash test run
+        crash_id = self.db_manager.insert_crash_test_run(
+            scenario_id="scenario_test",
+            scenario_name="Test Scenario",
+            status="PASSED",
+            started_at="2026-10-28T00:00:00Z",
+            completed_at="2026-10-28T00:01:00Z",
+            passed_steps=1,
+            failed_steps=0,
+            total_steps=1,
+            results=[],
+        )
+
+        # Verify initial counts
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 1)
+        self.assertIsNotNone(self.db_manager.get_approval_request(appr_id))
+        self.assertIsNotNone(self.db_manager.get_crash_test_run(crash_id))
+
+        # Clear audit logs
+        deleted = self.audit_service.clear_logs()
+        self.assertEqual(deleted, 1)
+
+        # Verify audit logs are empty
+        self.assertEqual(len(self.audit_service.get_recent_logs(limit=10)), 0)
+
+        # Verify approval_requests and crash_test_runs remain completely intact
+        saved_appr = self.db_manager.get_approval_request(appr_id)
+        self.assertIsNotNone(saved_appr)
+        self.assertEqual(saved_appr["id"], appr_id)
+        self.assertEqual(saved_appr["status"], "PENDING")
+
+        saved_crash = self.db_manager.get_crash_test_run(crash_id)
+        self.assertIsNotNone(saved_crash)
+        self.assertEqual(saved_crash["id"], crash_id)
+        self.assertEqual(saved_crash["status"], "PASSED")
+
 
 if __name__ == "__main__":
     unittest.main()
+

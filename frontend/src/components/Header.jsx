@@ -15,7 +15,6 @@ export default function Header({ backendStatus, checkingHealth, onCheckHealth })
         <div className="brand-text">
           <div className="brand-title-wrap">
             <span className="brand-title">ActionShield AI</span>
-            <span className="hackathon-tag">YUKTHI 2026</span>
           </div>
           <span className="brand-subtitle">AI-Agent Safety Checkpoint &amp; Deterministic Policy Layer</span>
         </div>

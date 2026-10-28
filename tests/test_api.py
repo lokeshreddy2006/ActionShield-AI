@@ -7,7 +7,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from app.database.manager import DatabaseManager
-from app.main import app, get_audit_service, get_execution_service
+from app.main import app, get_audit_service, get_db_manager, get_execution_service
 from app.services.audit import AuditService
 from app.services.executor import ExecutionService, InMemoryWorkspace
 
@@ -27,6 +27,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.test_execution_service = ExecutionService(workspace=self.test_workspace)
 
         # Apply FastAPI dependency injection overrides
+        app.dependency_overrides[get_db_manager] = lambda: self.test_db_manager
         app.dependency_overrides[get_audit_service] = lambda: self.test_audit_service
         app.dependency_overrides[get_execution_service] = lambda: self.test_execution_service
 
@@ -416,6 +417,86 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertNotIn("SUPER_SECRET_VALUE_12345", str(rec))
         self.assertTrue(meta.get("payload_redacted"))
 
+    # ---------------------------------------------------------
+    # 7. DELETE /audit Tests
+    # ---------------------------------------------------------
+
+    def test_delete_audit_clears_records_and_returns_count(self):
+        """DELETE /audit clears populated audit table and returns deleted_count."""
+        # Populate records
+        self.client.post("/evaluate", json={"action_type": "READ_FILE", "path": "file1.txt"})
+        self.client.post("/evaluate", json={"action_type": "READ_FILE", "path": "file2.txt"})
+
+        # Verify populated
+        get_res = self.client.get("/audit")
+        self.assertEqual(get_res.status_code, 200)
+        self.assertEqual(get_res.json()["count"], 2)
+
+        # Send DELETE /audit
+        del_res = self.client.delete("/audit")
+        self.assertEqual(del_res.status_code, 200)
+        del_data = del_res.json()
+        self.assertEqual(del_data["status"], "ok")
+        self.assertEqual(del_data["deleted_count"], 2)
+
+        # Verify GET /audit is now empty
+        after_res = self.client.get("/audit")
+        self.assertEqual(after_res.status_code, 200)
+        self.assertEqual(after_res.json()["count"], 0)
+        self.assertEqual(len(after_res.json()["records"]), 0)
+
+    def test_delete_audit_when_empty_returns_zero(self):
+        """DELETE /audit on empty table succeeds with deleted_count = 0."""
+        del_res = self.client.delete("/audit")
+        self.assertEqual(del_res.status_code, 200)
+        del_data = del_res.json()
+        self.assertEqual(del_data["status"], "ok")
+        self.assertEqual(del_data["deleted_count"], 0)
+
+    def test_delete_audit_preserves_approval_queue(self):
+        """DELETE /audit does NOT affect approval requests queue."""
+        # Create an approval request
+        appr_res = self.client.post(
+            "/approvals",
+            json={"action_type": "DELETE_FILE", "path": "sensitive.txt"},
+        )
+        self.assertEqual(appr_res.status_code, 201)
+        appr_id = appr_res.json()["id"]
+
+        # Ensure audit log has entries
+        audit_res = self.client.get("/audit")
+        self.assertGreater(audit_res.json()["count"], 0)
+
+        # Delete audit logs
+        del_res = self.client.delete("/audit")
+        self.assertEqual(del_res.status_code, 200)
+        self.assertEqual(del_res.json()["status"], "ok")
+
+        # Verify audit is empty
+        self.assertEqual(self.client.get("/audit").json()["count"], 0)
+
+        # Verify approval request still exists and is PENDING
+        get_appr = self.client.get(f"/approvals/{appr_id}")
+        self.assertEqual(get_appr.status_code, 200)
+        self.assertEqual(get_appr.json()["id"], appr_id)
+        self.assertEqual(get_appr.json()["status"], "PENDING")
+
+    def test_existing_audit_endpoints_continue_to_work_after_clear(self):
+        """New audit records are properly recorded and retrieved after a clear operation."""
+        # Initial populate and clear
+        self.client.post("/evaluate", json={"action_type": "READ_FILE", "path": "old.txt"})
+        self.client.delete("/audit")
+        self.assertEqual(self.client.get("/audit").json()["count"], 0)
+
+        # New actions post-clear
+        self.client.post("/evaluate", json={"action_type": "WRITE_FILE", "path": "workspace/new.txt", "is_permitted_location": True})
+        response = self.client.get("/audit")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+        self.assertEqual(data["records"][0]["action_type"], "WRITE_FILE")
+
 
 if __name__ == "__main__":
     unittest.main()
+
